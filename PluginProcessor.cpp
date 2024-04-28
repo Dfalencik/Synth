@@ -113,16 +113,15 @@ void NewProjectAudioProcessor::setStateInformation(const void* data, int sizeInB
 
 
 void NewProjectAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    // Add checks to ensure positive sampleRate and samplesPerBlock
+    jassert(sampleRate > 0 && samplesPerBlock > 0);
     if (sampleRate <= 0 || samplesPerBlock <= 0) {
-        // Log error or handle it accordingly
-        jassertfalse; // Debug assertion in JUCE
+        DBG("Invalid sampleRate or samplesPerBlock");
         return;
     }
-    // Initialize or reset audio processing components
     wavetableSynth.prepareToPlay(sampleRate, samplesPerBlock);
     sampler.prepareToPlay(sampleRate, samplesPerBlock);
 }
-
 
 void NewProjectAudioProcessor::releaseResources() {
     wavetableSynth.releaseResources();
@@ -153,14 +152,17 @@ void NewProjectAudioProcessor::setDetuneAmount(float amount) {
     wavetableSynth.setDetuneAmount(amount);
 }
 
+// Ensure all parameters are retrieved safely.
 void NewProjectAudioProcessor::setFilterCutoff(float cutoff) {
-    if (auto* param = apvts.getParameter("filterCutoff")) {
+    auto* param = apvts.getParameter("filterCutoff");
+    if (param) {
         const float normalizedCutoff = param->convertTo0to1(juce::jlimit(20.0f, 20000.0f, cutoff));
         param->setValueNotifyingHost(normalizedCutoff);
     } else {
         DBG("Filter Cutoff parameter not found!");
     }
 }
+
 
 void NewProjectAudioProcessor::setLFORate(float rate) {
     auto& parameter = *apvts.getParameter("lfoRate");
